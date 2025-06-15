@@ -8,6 +8,8 @@ let timerValue = 0; // Stopwatch in seconds
 let timerInterval = null;
 const timerDiv = document.getElementById('timer');
 const resetBtn = document.getElementById('reset-btn');
+let topTimes = JSON.parse(localStorage.getItem('topTimes') || '[]');
+const topTimesDiv = document.getElementById('top-times');
 
 items.forEach(item => {
   item.addEventListener('dragstart', e => {
@@ -29,6 +31,7 @@ bottleBody.addEventListener('drop', e => {
       enableGame(false);
       stopTimer();
       showResetButton();
+      updateTopTimes(timerValue);
     } else {
       message.textContent = 'Good! Add the next material.';
     }
@@ -87,11 +90,26 @@ resetBtn.onclick = function() {
   enableGame(true);
 };
 
-// Start the timer and game on load
+function updateTopTimes(newTime) {
+  if (typeof newTime === 'number') {
+    topTimes.push(newTime);
+    topTimes.sort((a, b) => a - b);
+    if (topTimes.length > 3) topTimes = topTimes.slice(0, 3);
+    localStorage.setItem('topTimes', JSON.stringify(topTimes));
+  }
+  if (topTimes.length > 0) {
+    topTimesDiv.innerHTML = '<b>Top Times:</b><br>' + topTimes.map((t, i) => `${i+1}. ${t.toFixed(1)}s`).join('<br>');
+  } else {
+    topTimesDiv.innerHTML = '';
+  }
+}
+
+// Show top times on load
 window.onload = function() {
   resetBottle();
   message.textContent = '';
   hideResetButton();
   startTimer();
   enableGame(true);
+  updateTopTimes();
 };
